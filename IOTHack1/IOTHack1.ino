@@ -41,10 +41,14 @@ DHT dht(DHTPIN, DHTTYPE);
 
 //Wifi Request Variables 
 char action[] = "POST ";  // Edit to build your command - "GET ", "POST ", "HEAD ", "OPTIONS " - note trailing space
-char server[] = "things.ubidots.com";
-char path[] = "/api/v1.6/variables/55391dfd762542557e0e8775/values";  // Edit Path to include you source key
+//char server[] = "things.ubidots.com";
+//char path[] = "/api/v1.6/variables/55391dfd762542557e0e8775/values";  // Edit Path to include you source key
 char token[] = "xVBQKsxi1Zdhr5Pxx805zwxeoFYH5fES9wgBwz3eThBR1zqStfDZPv7DQe4p";  // Edit to insert you API Token
 int port = 80; // HTTP
+
+//Sean's values
+char server[] = "56f4dff8.ngrok.com";
+char path[] = "/update";  // Edit Path to include you source key
 
 LWiFiClient c;
 
@@ -189,6 +193,9 @@ void loop()
   //Build the JSON
   var = "{\"value\":"+String(avg_accel)+"}";
   //var = "{\"value\":"+String(avg_accel)+",\"Acceleration\":12.345,\"user\":\"toonistic@gmail.com\"}";
+
+  //resetting values for Sean
+  var = "{\"accelerometer\": ["+String(avg_accel)+"],\"temperature\": ["+String(temp)+"],\"humidity\": ["+String(humid)+"]}";
   
   num=var.length();               // How long is the payload
   le=String(num);                 //this is to calcule the length of var
