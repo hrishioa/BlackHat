@@ -183,7 +183,7 @@ void loop()
         if(avg_accel > accel_thres)
           accel_var++;
           
-        safety_score = ((temp_var*0.001)+(humid_var*0.001)+(accel_var*0.1))/datapoints;
+        safety_score = ((temp_var*0.001)+(humid_var*0.001)+(accel_var*0.1));
 
   Serial.println("calibration parameter: ");
   Serial.print(mx_centre);
