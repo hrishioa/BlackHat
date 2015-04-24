@@ -46,7 +46,7 @@ char action[] = "POST ";  // Edit to build your command - "GET ", "POST ", "HEAD
 char token[] = "xVBQKsxi1Zdhr5Pxx805zwxeoFYH5fES9wgBwz3eThBR1zqStfDZPv7DQe4p";  // Edit to insert you API Token
 int port = 80; // HTTP
 
-//Sean's values
+ //Sean's values
 char server[] = "56f4dff8.ngrok.com";
 char path[] = "/update";  // Edit Path to include you source key
 
@@ -103,7 +103,18 @@ float temp = 0.0;
 float humid = 0.0;
 
 volatile float avg_accel=0;
-float max_accel=0;
+float max_accel=0, min_accel=100;
+float points_above=0,points_below=0;
+
+float ideal_temp = 23;
+float accel_thres = 1.6;
+float ideal_humid = 60;
+float temp_var = 0;
+float humid_var = 0;
+float accel_var = 0;
+float safety_score = 0;
+
+long datapoints = 0;
 
 void setup() {
   // join I2C bus (I2Cdev library doesn't do this automatically)
@@ -154,6 +165,20 @@ void loop()
         
         if(avg_accel>max_accel)
           max_accel=avg_accel;
+        if(avg_accel<min_accel)
+          min_accel=avg_accel;
+          
+        if(avg_accel>((max_accel+min_accel)/2))
+          points_above++;
+        else
+          points_below++;
+        
+        temp_var = ((temp_var*datapoints)+abs(temp-ideal_temp))/(datapoints+1);
+        humid_var += ((temp_var*datapoints)+abs(humid-ideal_humid))/(datapoints+1);
+        if(avg_accel > accel_thres)
+          accel_var++;
+          
+        safety_score = ((temp_var*0.001)+(humid_var*0.001)+(accel_var*0.1))/datapoints;
 
   Serial.println("calibration parameter: ");
   Serial.print(mx_centre);
@@ -174,6 +199,8 @@ void loop()
   Serial.println(avg_accel);
   Serial.println("Max Accel: ");
   Serial.println(max_accel);
+  Serial.println("Min Accel: "+String(min_accel)+", Max_Accel: "+String(max_accel)+", Productivity Score: "+String(points_above/(points_above+points_below)));
+  Serial.println("Temperature Variance: "+String(temp_var)+", Humidity Variance: "+String(humid_var)+", Safety Score: "+String(safety_score));
   Serial.println("   ");
   Serial.println("Temperature: ");
   Serial.println(temp);
@@ -191,7 +218,7 @@ void loop()
   
   //Send the POST Request
   //Build the JSON
-  var = "{\"value\":"+String(avg_accel)+"}";
+ // var = "{\"value\":"+String(avg_accel)+"}";
   //var = "{\"value\":"+String(avg_accel)+",\"Acceleration\":12.345,\"user\":\"toonistic@gmail.com\"}";
 
   //resetting values for Sean
@@ -226,7 +253,8 @@ void loop()
   c.println((char)26); //This terminates the JSON SEND with a carriage return
   
   Serial.println("POST Posted: var = "+var);
-  
+
+  datapoints++;  
   delay(SAMPLETIME);  
         
 }
