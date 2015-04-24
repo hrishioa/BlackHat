@@ -41,14 +41,19 @@ DHT dht(DHTPIN, DHTTYPE);
 
 //Wifi Request Variables 
 char action[] = "POST ";  // Edit to build your command - "GET ", "POST ", "HEAD ", "OPTIONS " - note trailing space
-//char server[] = "things.ubidots.com";
-//char path[] = "/api/v1.6/variables/55391dfd762542557e0e8775/values";  // Edit Path to include you source key
+char server[] = "things.ubidots.com";
+char path[] = "/api/v1.6/variables/55391dfd762542557e0e8775/values";  // Edit Path to include you source key
+char sscorepath[] = "/api/v1.6/variables/5539882b7625427e3654715a/values";
+char pscorepath[] = "/api/v1.6/variables/553988427625427e18a4433a/values";
+char tempath[] = "/api/v1.6/variables/5539398d76254201b0ce442c/values";
+char humidpath[] = "/api/v1.6/variables/553988ec76254201d2efa27c/values";
+
 char token[] = "xVBQKsxi1Zdhr5Pxx805zwxeoFYH5fES9wgBwz3eThBR1zqStfDZPv7DQe4p";  // Edit to insert you API Token
 int port = 80; // HTTP
 
  //Sean's values
-char server[] = "56f4dff8.ngrok.com";
-char path[] = "/update";  // Edit Path to include you source key
+//char server[] = "56f4dff8.ngrok.com";
+//char path[] = "/update";  // Edit Path to include you source key
 
 LWiFiClient c;
 
@@ -218,11 +223,16 @@ void loop()
   
   //Send the POST Request
   //Build the JSON
- // var = "{\"value\":"+String(avg_accel)+"}";
+  var = "{\"value\":"+String(avg_accel)+"}";
   //var = "{\"value\":"+String(avg_accel)+",\"Acceleration\":12.345,\"user\":\"toonistic@gmail.com\"}";
+  
+  if(datapoints%10==0) { //send the scores
+        //resetting values for Sean
+        log_other_vars(temp,humid,safety_score,(points_above/(points_above+points_below)));
+  }
 
   //resetting values for Sean
-  var = "{\"accelerometer\": ["+String(avg_accel)+"],\"temperature\": ["+String(temp)+"],\"humidity\": ["+String(humid)+"]}";
+  //var = "{\"accelerometer\": ["+String(avg_accel)+"],\"temperature\": ["+String(temp)+"],\"humidity\": ["+String(humid)+"]}";
   
   num=var.length();               // How long is the payload
   le=String(num);                 //this is to calcule the length of var
@@ -401,4 +411,141 @@ void getCompassDate_calibrated ()
   Mxyz[0] = Mxyz[0] - mx_centre;
   Mxyz[1] = Mxyz[1] - my_centre;
   Mxyz[2] = Mxyz[2] - mz_centre;  
+}
+
+
+
+
+void log_other_vars(float temp, float humid, float sscore, float pscore) {
+  //Send temperature
+  var = "{\"value\":"+String(temp)+"}";
+  
+  num=var.length();               // How long is the payload
+  le=String(num);                 //this is to calcule the length of var
+  Serial.print("Connect to ");    // For the console - show you are connecting
+  Serial.println(server);
+  Serial.println("Connecting to WebSite");
+  while (0 == c.connect(server, 80))
+  {
+    Serial.println("Re-Connecting to WebSite");
+    delay(500);
+  }
+
+  Serial.println("Connected");  // Console monitoring
+
+  c.print(action);                   // These commands build a JSON request for Ubidots but fairly standard
+  c.print(tempath);                     // specs for this command here: http://ubidots.com/docs/api/index.html
+  c.println(" HTTP/1.1");
+  c.println(F("Content-Type: application/json"));
+  c.print(F("Content-Length: "));
+  c.println(le);
+  c.print(F("X-Auth-Token: "));
+  c.println(token);
+  c.print(F("Host: "));
+  c.println(server);
+  c.println();
+  c.println(var);  // The payload defined above
+  c.println();
+  c.println((char)26); //This terminates the JSON SEND with a carriage return
+  
+  Serial.println("POST Posted: var = "+var);
+
+  //Send Humidity
+  var = "{\"value\":"+String(humid)+"}";
+  
+  num=var.length();               // How long is the payload
+  le=String(num);                 //this is to calcule the length of var
+  Serial.print("Connect to ");    // For the console - show you are connecting
+  Serial.println(server);
+  Serial.println("Connecting to WebSite");
+  while (0 == c.connect(server, 80))
+  {
+    Serial.println("Re-Connecting to WebSite");
+    delay(500);
+  }
+
+  Serial.println("Connected");  // Console monitoring
+
+  c.print(action);                   // These commands build a JSON request for Ubidots but fairly standard
+  c.print(humidpath);                     // specs for this command here: http://ubidots.com/docs/api/index.html
+  c.println(" HTTP/1.1");
+  c.println(F("Content-Type: application/json"));
+  c.print(F("Content-Length: "));
+  c.println(le);
+  c.print(F("X-Auth-Token: "));
+  c.println(token);
+  c.print(F("Host: "));
+  c.println(server);
+  c.println();
+  c.println(var);  // The payload defined above
+  c.println();
+  c.println((char)26); //This terminates the JSON SEND with a carriage return
+  
+  Serial.println("POST Posted: var = "+var);
+  
+  //Send SSCORE
+  var = "{\"value\":"+String(sscore)+"}";
+  
+  num=var.length();               // How long is the payload
+  le=String(num);                 //this is to calcule the length of var
+  Serial.print("Connect to ");    // For the console - show you are connecting
+  Serial.println(server);
+  Serial.println("Connecting to WebSite");
+  while (0 == c.connect(server, 80))
+  {
+    Serial.println("Re-Connecting to WebSite");
+    delay(500);
+  }
+
+  Serial.println("Connected");  // Console monitoring
+
+  c.print(action);                   // These commands build a JSON request for Ubidots but fairly standard
+  c.print(sscorepath);                     // specs for this command here: http://ubidots.com/docs/api/index.html
+  c.println(" HTTP/1.1");
+  c.println(F("Content-Type: application/json"));
+  c.print(F("Content-Length: "));
+  c.println(le);
+  c.print(F("X-Auth-Token: "));
+  c.println(token);
+  c.print(F("Host: "));
+  c.println(server);
+  c.println();
+  c.println(var);  // The payload defined above
+  c.println();
+  c.println((char)26); //This terminates the JSON SEND with a carriage return
+  
+  Serial.println("POST Posted: var = "+var);
+  
+  //Send PSCORE
+  var = "{\"value\":"+String(pscore)+"}";
+  
+  num=var.length();               // How long is the payload
+  le=String(num);                 //this is to calcule the length of var
+  Serial.print("Connect to ");    // For the console - show you are connecting
+  Serial.println(server);
+  Serial.println("Connecting to WebSite");
+  while (0 == c.connect(server, 80))
+  {
+    Serial.println("Re-Connecting to WebSite");
+    delay(500);
+  }
+
+  Serial.println("Connected");  // Console monitoring
+
+  c.print(action);                   // These commands build a JSON request for Ubidots but fairly standard
+  c.print(pscorepath);                     // specs for this command here: http://ubidots.com/docs/api/index.html
+  c.println(" HTTP/1.1");
+  c.println(F("Content-Type: application/json"));
+  c.print(F("Content-Length: "));
+  c.println(le);
+  c.print(F("X-Auth-Token: "));
+  c.println(token);
+  c.print(F("Host: "));
+  c.println(server);
+  c.println();
+  c.println(var);  // The payload defined above
+  c.println();
+  c.println((char)26); //This terminates the JSON SEND with a carriage return
+  
+  Serial.println("POST Posted: var = "+var);
 }
